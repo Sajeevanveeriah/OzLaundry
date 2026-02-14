@@ -10,23 +10,20 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
-      - uses: actions/configure-pages@v5
       - run: pnpm install
-      - run: BASE=/${{ github.event.repository.name }}/ VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL || 'https://api.example.com' }} VITE_SOCKET_URL=${{ vars.VITE_SOCKET_URL || 'https://api.example.com' }} pnpm --filter web build:pages
+      - run: BASE=/${{ github.event.repository.name }}/ pnpm --filter web build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/dist
@@ -40,5 +37,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-      - name: Show deployed URL
-        run: echo "Deployed to ${{ steps.deployment.outputs.page_url }}"

@@ -62,15 +62,13 @@ Web runs on `http://localhost:5173`, API on `http://localhost:4000`.
 
 ## Deploy frontend to GitHub Pages
 
-1. Push to `main` (or run workflow manually from **Actions → Deploy Web to GitHub Pages**).
-2. In repo settings, enable **Pages** with **Build and deployment = GitHub Actions**.
-3. Add repository variables (**Settings → Secrets and variables → Actions → Variables**):
+1. Push to `main`.
+2. In repo settings, enable **Pages** with GitHub Actions source.
+3. Ensure workflow `.github/workflows/deploy-pages.yml` exists.
+4. Workflow builds web app with `BASE=/<repo-name>/` and deploys `apps/web/dist`.
+5. Set web envs as repository variables if needed:
    - `VITE_API_BASE_URL=https://your-api-domain`
    - `VITE_SOCKET_URL=https://your-api-domain`
-4. The workflow builds with `BASE=/<repo-name>/`, creates SPA fallback (`404.html`), uploads `apps/web/dist`, and deploys Pages.
-5. Open deployment URL from:
-   - **Actions → Deploy Web to GitHub Pages → deploy job → environment URL**, or
-   - direct format: `https://<github-username>.github.io/<repo-name>/`.
 
 ## Deploy backend
 
@@ -99,8 +97,7 @@ Web runs on `http://localhost:5173`, API on `http://localhost:4000`.
 
 ### 404 on refresh (SPA)
 
-- Workflow already copies `index.html` to `404.html` during Pages build to support client-side routing refreshes.
-- If still broken, verify the deployed URL includes the repo segment: `https://<user>.github.io/<repo>/`.
+- GitHub Pages does not natively rewrite all routes; use SPA fallback strategy (copy `index.html` to `404.html`) if needed.
 
 ### CORS errors
 
