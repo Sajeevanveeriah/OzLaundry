@@ -1,9 +1,8 @@
-name: Deploy Web to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,7 +10,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
@@ -19,30 +18,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
-      - uses: actions/configure-pages@v5
-      - run: pnpm install
-      - run: BASE=/${{ github.event.repository.name }}/ VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }} VITE_SOCKET_URL=${{ vars.VITE_SOCKET_URL }} pnpm --filter web build:pages
-      - run: pnpm install
-      - run: BASE=/${{ github.event.repository.name }}/ pnpm --filter web build
-      - uses: actions/upload-pages-artifact@v3
+          cache: "pnpm"
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build web for Pages
+        env:
+          BASE_PATH: "/${{ github.event.repository.name }}/"
+        run: pnpm --filter web run build:pages
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/dist
 
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-      - name: Show deployed URL
-        run: echo "Deployed to ${{ steps.deployment.outputs.page_url }}"

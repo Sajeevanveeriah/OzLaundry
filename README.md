@@ -62,6 +62,17 @@ Web runs on `http://localhost:5173`, API on `http://localhost:4000`.
 
 ## Zero-backend mode (deploy straight from repo)
 
+## Enable GitHub Pages
+
+1. Go to **GitHub repository → Settings → Pages**.
+2. Under **Build and deployment**, set **Source = GitHub Actions**.
+3. Push to `main` once.
+4. Open **Actions** and confirm workflow **Deploy to GitHub Pages** completed (build + deploy).
+5. Open your site at:
+   - `https://<username>.github.io/<repo-name>/`
+
+> If your current URL shows README, Pages is serving the repository content instead of the deployed `dist` artifact. This workflow uploads `apps/web/dist` only, so it serves your built app.
+
 If you do **not** have an API yet, leave `VITE_API_BASE_URL` and `VITE_SOCKET_URL` empty.
 The frontend automatically runs in built-in Demo Mode using browser localStorage.
 
@@ -73,25 +84,9 @@ This lets GitHub Pages work immediately from this repo with no backend service.
 
 ## Deploy frontend to GitHub Pages
 
-1. Push to `main` (or run workflow manually from **Actions → Deploy Web to GitHub Pages**).
-2. In repo settings, enable **Pages** with **Build and deployment = GitHub Actions**.
-3. Optional: add repository variables (**Settings → Secrets and variables → Actions → Variables**) only if you have a backend:
-   - `VITE_API_BASE_URL=https://your-api-domain`
-   - `VITE_SOCKET_URL=https://your-api-domain`
-   - If omitted, deploy runs in built-in zero-backend Demo Mode.
-4. The workflow builds with `BASE=/<repo-name>/`, creates SPA fallback (`404.html`), uploads `apps/web/dist`, and deploys Pages.
-5. Open deployment URL from:
-   - **Actions → Deploy Web to GitHub Pages → deploy job → environment URL**, or
-   - direct format: `https://<github-username>.github.io/<repo-name>/`.
-## Deploy frontend to GitHub Pages
-
-1. Push to `main`.
-2. In repo settings, enable **Pages** with GitHub Actions source.
-3. Ensure workflow `.github/workflows/deploy-pages.yml` exists.
-4. Workflow builds web app with `BASE=/<repo-name>/` and deploys `apps/web/dist`.
-5. Set web envs as repository variables if needed:
-   - `VITE_API_BASE_URL=https://your-api-domain`
-   - `VITE_SOCKET_URL=https://your-api-domain`
+1. Push to `main` (one push triggers deploy).
+2. Workflow builds with `BASE_PATH=/<repo-name>/`, uploads `apps/web/dist`, and deploys to Pages.
+3. Use route-friendly build command: `pnpm --filter web run build:pages` (creates `404.html` from `index.html`).
 
 ## Deploy backend
 
@@ -116,13 +111,12 @@ This lets GitHub Pages work immediately from this repo with no backend service.
 ### GitHub Pages base path issues
 
 - Ensure `BrowserRouter` uses `basename={import.meta.env.BASE_URL}`.
-- Build with `BASE=/<repo-name>/`.
+- Build with `BASE_PATH=/<repo-name>/`.
 
 ### 404 on refresh (SPA)
 
 - Workflow already copies `index.html` to `404.html` during Pages build to support client-side routing refreshes.
 - If still broken, verify the deployed URL includes the repo segment: `https://<user>.github.io/<repo>/`.
-- GitHub Pages does not natively rewrite all routes; use SPA fallback strategy (copy `index.html` to `404.html`) if needed.
 
 ### CORS errors
 
@@ -135,3 +129,11 @@ This lets GitHub Pages work immediately from this repo with no backend service.
 ## Smoke test
 
 - `pnpm test:smoke` runs Playwright flow for home -> learn more -> get started -> register -> dashboard -> create order.
+
+
+## Local verification commands
+
+- `pnpm install`
+- `pnpm --filter web dev`
+- `pnpm --filter web build:pages`
+- `test -f apps/web/dist/index.html && echo "dist exists"`

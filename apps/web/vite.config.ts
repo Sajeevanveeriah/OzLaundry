@@ -3,5 +3,5 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.BASE || process.env.VITE_APP_BASE || "/"
+  base: process.env.BASE_PATH || "/"
 });

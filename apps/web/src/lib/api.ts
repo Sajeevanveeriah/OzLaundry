@@ -44,7 +44,11 @@ const defaultDb: DemoDb = {
 };
 
 const storageKey = "ozlaundry_demo_db";
-export const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
+export const DEMO_MODE = (import.meta.env.VITE_DEMO_MODE ?? "true") !== "false" || !import.meta.env.VITE_API_BASE_URL;
+
+function emitOrderUpdate(orderId: string, stage: string) {
+  window.dispatchEvent(new CustomEvent("demo:order-updated", { detail: { orderId, stage } }));
+}
 
 function loadDb(): DemoDb {
   const raw = localStorage.getItem(storageKey);
@@ -66,15 +70,11 @@ function currentUser(db: DemoDb) {
 let fallbackToken: string | null = localStorage.getItem("token");
 
 const http = axios.create({
-const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"}/api`,
   withCredentials: true
 });
 
 http.interceptors.request.use((config) => {
-let fallbackToken: string | null = localStorage.getItem("token");
-
-api.interceptors.request.use((config) => {
   if (fallbackToken) config.headers.Authorization = `Bearer ${fallbackToken}`;
   return config;
 });
@@ -147,6 +147,7 @@ async function demoPost(path: string, body: any) {
     };
     db.orders.unshift(order);
     saveDb(db);
+    emitOrderUpdate(order.id, order.stage);
     return { data: order };
   }
 
@@ -156,6 +157,7 @@ async function demoPost(path: string, body: any) {
     if (!order) throw new Error("Invalid QR");
     order.stage = body.stage || "Received";
     saveDb(db);
+    emitOrderUpdate(order.id, order.stage);
     return { data: order };
   }
 
@@ -173,6 +175,7 @@ async function demoPatch(path: string, body: any) {
     if (!order) throw new Error("Not found");
     order.stage = body.stage;
     saveDb(db);
+    emitOrderUpdate(order.id, order.stage);
     return { data: order };
   }
 
