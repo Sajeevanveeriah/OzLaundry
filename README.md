@@ -83,6 +83,15 @@ This lets GitHub Pages work immediately from this repo with no backend service.
 5. Open deployment URL from:
    - **Actions → Deploy Web to GitHub Pages → deploy job → environment URL**, or
    - direct format: `https://<github-username>.github.io/<repo-name>/`.
+## Deploy frontend to GitHub Pages
+
+1. Push to `main`.
+2. In repo settings, enable **Pages** with GitHub Actions source.
+3. Ensure workflow `.github/workflows/deploy-pages.yml` exists.
+4. Workflow builds web app with `BASE=/<repo-name>/` and deploys `apps/web/dist`.
+5. Set web envs as repository variables if needed:
+   - `VITE_API_BASE_URL=https://your-api-domain`
+   - `VITE_SOCKET_URL=https://your-api-domain`
 
 ## Deploy backend
 
@@ -113,6 +122,7 @@ This lets GitHub Pages work immediately from this repo with no backend service.
 
 - Workflow already copies `index.html` to `404.html` during Pages build to support client-side routing refreshes.
 - If still broken, verify the deployed URL includes the repo segment: `https://<user>.github.io/<repo>/`.
+- GitHub Pages does not natively rewrite all routes; use SPA fallback strategy (copy `index.html` to `404.html`) if needed.
 
 ### CORS errors
 

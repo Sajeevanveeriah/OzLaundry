@@ -66,11 +66,15 @@ function currentUser(db: DemoDb) {
 let fallbackToken: string | null = localStorage.getItem("token");
 
 const http = axios.create({
+const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"}/api`,
   withCredentials: true
 });
 
 http.interceptors.request.use((config) => {
+let fallbackToken: string | null = localStorage.getItem("token");
+
+api.interceptors.request.use((config) => {
   if (fallbackToken) config.headers.Authorization = `Bearer ${fallbackToken}`;
   return config;
 });

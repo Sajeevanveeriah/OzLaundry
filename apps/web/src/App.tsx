@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Route, Routes, Link, useNavigate, useParams } from "react-router-dom";
 import { io } from "socket.io-client";
 import api, { DEMO_MODE, setToken } from "./lib/api";
+import api, { setToken } from "./lib/api";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useAuth } from "./hooks/useAuth";
@@ -84,6 +85,10 @@ export function App() {
 
   useEffect(() => {
     if (DEMO_MODE || !auth.user) return;
+  useEffect(() => { api.get("/flags").then(() => setApiDown(false)).catch(() => setApiDown(true)); }, []);
+
+  useEffect(() => {
+    if (!auth.user) return;
     const socket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:4000", { withCredentials: true });
     socket.emit("join:user", auth.user.id);
     socket.on("order:updated", ({ orderId, stage }) => {
@@ -97,6 +102,7 @@ export function App() {
   return <>
     {DEMO_MODE && <div style={{ background: "#e8f5e9", padding: 8 }}>Demo Mode: running fully static from GitHub Pages (no backend required).</div>}
     {apiDown && <div style={{background:"#fdd",padding:8}}>API unreachable: showing limited experience.</div>}
+    {apiDown && <div style={{background:"#fdd",padding:8}}>Demo Mode: API unreachable</div>}
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />

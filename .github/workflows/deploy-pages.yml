@@ -20,6 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -27,6 +29,8 @@ jobs:
       - uses: actions/configure-pages@v5
       - run: pnpm install
       - run: BASE=/${{ github.event.repository.name }}/ VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }} VITE_SOCKET_URL=${{ vars.VITE_SOCKET_URL }} pnpm --filter web build:pages
+      - run: pnpm install
+      - run: BASE=/${{ github.event.repository.name }}/ pnpm --filter web build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/dist
