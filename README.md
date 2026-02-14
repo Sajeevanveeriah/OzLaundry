@@ -1,139 +1,143 @@
 # OzLaundry MVP
 
-Monorepo Laundry Subscription MVP with static React frontend + external API backend + Supabase/Postgres.
+Subscription laundry service with realtime tracking, QR scanning, and admin dashboard.
+Runs entirely client-side using browser localStorage — no backend required for demo.
 
-## Repo tree
+## Demo credentials
+
+- **Customer:** `user@ozlaundry.local` / `Customer123!`
+- **Admin:** `admin@ozlaundry.local` / `Admin123!`
+
+## Repo structure
 
 ```text
 .
-├── .env.example
-├── .github/workflows/deploy-pages.yml
-├── Dockerfile.api
-├── docker-compose.yml
-├── render.yaml
-├── apps
-│   ├── api
-│   │   ├── prisma
-│   │   │   ├── schema.prisma
-│   │   │   └── seed.ts
-│   │   ├── src
-│   │   │   ├── app.ts
-│   │   │   ├── server.ts
-│   │   │   ├── lib
-│   │   │   ├── middleware
-│   │   │   ├── routes
-│   │   │   └── socket
-│   │   └── tests
-│   └── web
-│       └── src
-├── packages/shared/src
-├── tests/playwright/smoke.spec.ts
-└── playwright.config.ts
+├── apps/
+│   ├── web/          # Vite + React + TypeScript SPA
+│   └── api/          # Express backend (optional, not needed for demo)
+├── packages/shared/  # Zod schemas shared between web & api
+├── docs/             # Built SPA output (served by GitHub Pages)
+└── tests/playwright/ # E2E smoke tests
 ```
 
-## Local setup
+## Routes
 
-1. `pnpm install`
-2. `docker compose up -d`
-3. `cp .env.example .env` and adjust variables.
-4. `pnpm --filter api prisma:generate`
-5. `pnpm --filter api prisma:migrate`
-6. `pnpm --filter api prisma:seed`
-7. `pnpm dev`
+| Path | Description | Access |
+|------|-------------|--------|
+| `/` | Landing page with "Learn more" and "Get started" buttons | Public |
+| `/learn-more` | Service description | Public |
+| `/pricing` | Demo pricing tiers | Public |
+| `/login` | Login form (pre-filled with demo credentials) | Public |
+| `/register` | Registration form | Public |
+| `/dashboard` | User orders list + create order | Customer |
+| `/orders/:id` | Order detail + QR code | Customer |
+| `/admin/orders` | All orders + stage management + QR scan | Admin |
+| `/admin/features` | Feature flag toggles | Admin |
 
-Web runs on `http://localhost:5173`, API on `http://localhost:4000`.
+## Local development
 
-## Auth model
+```bash
+pnpm install
+pnpm --filter web dev
+```
 
-- Email/password register + login.
-- JWT is set in `httpOnly` cookie (`auth_token`) for same-site deployments.
-- Token fallback is also returned in JSON and accepted as `Authorization: Bearer <token>` for cross-domain GitHub Pages demos.
+Web runs on `http://localhost:5173`. No backend or environment variables needed — demo mode activates automatically.
 
-## Features delivered
+## Deploying to GitHub Pages (No Actions)
 
-- Routes: `/`, `/learn-more`, `/pricing`, `/login`, `/register`, `/dashboard`, `/orders/:id`, `/admin/orders`, `/admin/features`
-- Order lifecycle stages + status logs
-- Socket.io realtime updates to `user:<id>` rooms
-- QR payload signing + admin scan endpoint
-- Feature flags persisted in DB + admin toggles
-- Stripe checkout stub behind `FEATURE_PAYMENTS`
-- `/health` endpoint with DB connectivity
-- Modules registry files in web/api for easy future feature wiring
+This project uses **branch deploy from `/docs`**. No GitHub Actions required.
 
-## Zero-backend mode (deploy straight from repo)
+### 1. Build the site
 
-## Enable GitHub Pages
+```bash
+REPO_NAME=OzLaundry pnpm build:pages
+```
 
-1. Go to **GitHub repository → Settings → Pages**.
-2. Under **Build and deployment**, set **Source = GitHub Actions**.
-3. Push to `main` once.
-4. Open **Actions** and confirm workflow **Deploy to GitHub Pages** completed (build + deploy).
-5. Open your site at:
-   - `https://<username>.github.io/<repo-name>/`
+Replace `OzLaundry` with your actual repository name.
 
-> If your current URL shows README, Pages is serving the repository content instead of the deployed `dist` artifact. This workflow uploads `apps/web/dist` only, so it serves your built app.
+This outputs the built SPA into the `/docs` folder at the repository root, copies `index.html` to `404.html` for SPA routing, and creates `.nojekyll` to prevent Jekyll processing.
 
-If you do **not** have an API yet, leave `VITE_API_BASE_URL` and `VITE_SOCKET_URL` empty.
-The frontend automatically runs in built-in Demo Mode using browser localStorage.
+### 2. Commit the `/docs` folder
 
-Demo credentials:
-- Customer: `user@ozlaundry.local` / `Customer123!`
-- Admin: `admin@ozlaundry.local` / `Admin123!`
+```bash
+git add docs/
+git commit -m "Build site for GitHub Pages"
+git push
+```
 
-This lets GitHub Pages work immediately from this repo with no backend service.
+### 3. Configure GitHub Pages
 
-## Deploy frontend to GitHub Pages
+1. Go to your repository on GitHub.
+2. Navigate to **Settings > Pages**.
+3. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
+4. Set **Branch** to `main` and **Folder** to `/docs`.
+5. Click **Save**.
 
-1. Push to `main` (one push triggers deploy).
-2. Workflow builds with `BASE_PATH=/<repo-name>/`, uploads `apps/web/dist`, and deploys to Pages.
-3. Use route-friendly build command: `pnpm --filter web run build:pages` (creates `404.html` from `index.html`).
+### 4. Access your site
 
-## Deploy backend
+Your site will be available at:
 
-### Option A: Render with Docker
+```
+https://<username>.github.io/<repo-name>/
+```
 
-1. Create new Web Service from repo.
-2. Select `render.yaml` or configure manually:
-   - Dockerfile: `Dockerfile.api`
-   - Port: `4000`
-3. Set env vars: `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS`, `QR_HMAC_SECRET`, optional Stripe keys.
-4. Use Supabase Postgres URL in `DATABASE_URL`.
-5. Run migrations once from a shell/job: `pnpm --filter api prisma:migrate`.
-
-### Option B: Railway/Fly
-
-- Deploy using `Dockerfile.api`.
-- Configure same env vars.
-- Point to Supabase Postgres.
+One push to `main` updates the live site.
 
 ## Troubleshooting
 
-### GitHub Pages base path issues
+### GitHub Pages shows README instead of the app
 
-- Ensure `BrowserRouter` uses `basename={import.meta.env.BASE_URL}`.
-- Build with `BASE_PATH=/<repo-name>/`.
+The **Folder** setting under Settings > Pages is set to `/ (root)` instead of `/docs`. Change it to `/docs` and save.
 
-### 404 on refresh (SPA)
+### Blank page loads
 
-- Workflow already copies `index.html` to `404.html` during Pages build to support client-side routing refreshes.
-- If still broken, verify the deployed URL includes the repo segment: `https://<user>.github.io/<repo>/`.
+The `REPO_NAME` was not set (or set incorrectly) during the build. The `<base>` tag in `index.html` must match your repository name. Rebuild:
 
-### CORS errors
+```bash
+REPO_NAME=your-repo-name pnpm build:pages
+```
 
-- Add both origins to `CORS_ORIGINS`, e.g. `http://localhost:5173,https://<user>.github.io`.
+### 404 on page refresh
 
-### Cookie not set across domains
+Ensure `docs/404.html` exists. The post-build script copies `index.html` to `404.html` automatically. If missing, re-run the build.
 
-- Cross-domain demos should use Bearer token fallback from login/register response.
+### Routes don't work / broken links
 
-## Smoke test
+`BrowserRouter` uses `basename={import.meta.env.BASE_URL}` which Vite sets from the `base` config. Ensure `REPO_NAME` matches during build.
 
-- `pnpm test:smoke` runs Playwright flow for home -> learn more -> get started -> register -> dashboard -> create order.
+## Zero-backend demo mode
 
+When no `VITE_API_BASE_URL` environment variable is set, the frontend runs in **Demo Mode**:
 
-## Local verification commands
+- All data is stored in browser `localStorage`.
+- Auth (login/register/logout) works with local data.
+- Orders can be created, listed, and have their stage updated.
+- Feature flags are toggleable and persisted locally.
+- Realtime updates are simulated via `CustomEvent` dispatches.
+- A green "Demo Mode" banner is shown at the top of every page.
 
-- `pnpm install`
-- `pnpm --filter web dev`
-- `pnpm --filter web build:pages`
-- `test -f apps/web/dist/index.html && echo "dist exists"`
+No environment variables, no database, no backend service required.
+
+## Connecting a real backend (optional)
+
+Set these environment variables before building:
+
+```bash
+VITE_API_BASE_URL=https://your-api.example.com
+VITE_SOCKET_URL=https://your-api.example.com
+```
+
+The frontend will switch from localStorage demo mode to real HTTP/WebSocket calls.
+
+## Verification checklist
+
+After deploying, confirm:
+
+- [ ] `docs/index.html` exists in the repo
+- [ ] `docs/404.html` exists in the repo
+- [ ] `docs/.nojekyll` exists in the repo
+- [ ] Settings > Pages points to `main` branch, `/docs` folder
+- [ ] Live site shows the app UI (not README)
+- [ ] Page refresh on `/login` or `/dashboard` works (no 404)
+- [ ] "Learn more" button navigates to `/learn-more`
+- [ ] "Get started" button navigates to `/login`
