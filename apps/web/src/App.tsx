@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Route, Routes, Link, useNavigate, useParams } from "react-router-dom";
 import { io } from "socket.io-client";
+import api, { DEMO_MODE, setToken } from "./lib/api";
 import api, { setToken } from "./lib/api";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -74,6 +75,16 @@ export function App() {
   const auth = useAuth();
   const [apiDown, setApiDown] = useState(false);
 
+  useEffect(() => {
+    if (DEMO_MODE) {
+      setApiDown(false);
+      return;
+    }
+    api.get("/flags").then(() => setApiDown(false)).catch(() => setApiDown(true));
+  }, []);
+
+  useEffect(() => {
+    if (DEMO_MODE || !auth.user) return;
   useEffect(() => { api.get("/flags").then(() => setApiDown(false)).catch(() => setApiDown(true)); }, []);
 
   useEffect(() => {
@@ -89,6 +100,8 @@ export function App() {
   if (auth.loading) return <p>Loading session...</p>;
 
   return <>
+    {DEMO_MODE && <div style={{ background: "#e8f5e9", padding: 8 }}>Demo Mode: running fully static from GitHub Pages (no backend required).</div>}
+    {apiDown && <div style={{background:"#fdd",padding:8}}>API unreachable: showing limited experience.</div>}
     {apiDown && <div style={{background:"#fdd",padding:8}}>Demo Mode: API unreachable</div>}
     <Routes>
       <Route element={<Layout />}>

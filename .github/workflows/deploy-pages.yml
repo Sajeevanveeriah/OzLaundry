@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,6 +26,9 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
+      - uses: actions/configure-pages@v5
+      - run: pnpm install
+      - run: BASE=/${{ github.event.repository.name }}/ VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }} VITE_SOCKET_URL=${{ vars.VITE_SOCKET_URL }} pnpm --filter web build:pages
       - run: pnpm install
       - run: BASE=/${{ github.event.repository.name }}/ pnpm --filter web build
       - uses: actions/upload-pages-artifact@v3
@@ -37,3 +44,5 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Show deployed URL
+        run: echo "Deployed to ${{ steps.deployment.outputs.page_url }}"
