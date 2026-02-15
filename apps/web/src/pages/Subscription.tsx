@@ -52,7 +52,7 @@ export function Subscription() {
 
     setActionLoading(true);
     try {
-      await api.post('/subscriptions/pause');
+      await api.post('/subscriptions/pause', {});
       await loadSubscription();
       alert('Subscription paused successfully');
     } catch (error: any) {
@@ -67,7 +67,7 @@ export function Subscription() {
 
     setActionLoading(true);
     try {
-      await api.post('/subscriptions/resume');
+      await api.post('/subscriptions/resume', {});
       await loadSubscription();
       alert('Subscription resumed successfully');
     } catch (error: any) {
