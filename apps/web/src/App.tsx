@@ -14,8 +14,12 @@ import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Dashboard } from "./pages/Dashboard";
 import { OrderDetail } from "./pages/OrderDetail";
+import { Subscription } from "./pages/Subscription";
+import { Complaints } from "./pages/Complaints";
 import { AdminOrders } from "./pages/admin/Orders";
 import { AdminFeatures } from "./pages/admin/Features";
+import { AdminAnalytics } from "./pages/admin/Analytics";
+import { AdminComplaints } from "./pages/admin/Complaints";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { Terms } from "./pages/Terms";
 import { RefundPolicy } from "./pages/RefundPolicy";
@@ -89,8 +93,12 @@ export function App() {
           <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/dashboard" element={<ProtectedRoute user={auth.user}><Dashboard user={auth.user} /></ProtectedRoute>} />
           <Route path="/orders/:id" element={<ProtectedRoute user={auth.user}><OrderDetail /></ProtectedRoute>} />
+          <Route path="/subscription" element={<ProtectedRoute user={auth.user}><Subscription /></ProtectedRoute>} />
+          <Route path="/complaints" element={<ProtectedRoute user={auth.user}><Complaints /></ProtectedRoute>} />
           <Route path="/admin/orders" element={<ProtectedRoute user={auth.user} adminOnly><AdminOrders /></ProtectedRoute>} />
           <Route path="/admin/features" element={<ProtectedRoute user={auth.user} adminOnly><AdminFeatures /></ProtectedRoute>} />
+          <Route path="/admin/analytics" element={<ProtectedRoute user={auth.user} adminOnly><AdminAnalytics /></ProtectedRoute>} />
+          <Route path="/admin/complaints" element={<ProtectedRoute user={auth.user} adminOnly><AdminComplaints /></ProtectedRoute>} />
         </Route>
       </Routes>
     </>

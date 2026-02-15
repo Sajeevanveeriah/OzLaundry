@@ -1,9 +1,37 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { useAuth } from '../hooks/useAuth';
+import api from '../lib/api';
 
 export function Pricing() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  async function handleSubscribe(planId: string) {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setLoading(planId);
+    try {
+      const response = await api.post('/subscriptions/create', {
+        plan: planId,
+        successUrl: `${window.location.origin}/subscription?success=true`,
+        cancelUrl: `${window.location.origin}/pricing`
+      });
+
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Failed to start checkout');
+      setLoading(null);
+    }
+  }
 
   const plans = [
     {
@@ -115,9 +143,10 @@ export function Pricing() {
                 <Button
                   className="w-full"
                   variant={plan.popular ? 'primary' : 'secondary'}
-                  onClick={() => navigate('/login')}
+                  onClick={() => handleSubscribe(plan.id)}
+                  disabled={loading === plan.id}
                 >
-                  Get Started
+                  {loading === plan.id ? 'Loading...' : 'Get Started'}
                 </Button>
               </Card>
             </div>
