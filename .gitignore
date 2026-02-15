@@ -9,3 +9,8 @@ test-results
 pnpm-lock.yaml
 *.log
 apps/api/generated
+
+# Build artifacts
+*.tsbuildinfo
+apps/web/src/**/*.js
+!apps/web/src/**/*.config.js
