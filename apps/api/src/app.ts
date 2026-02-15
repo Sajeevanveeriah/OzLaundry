@@ -7,8 +7,15 @@ import { healthRouter } from "./routes/health.js";
 import { ordersRouter } from "./routes/orders.js";
 import { flagsRouter } from "./routes/flags.js";
 import { paymentsRouter } from "./routes/payments.js";
+import { subscriptionsRouter } from "./routes/subscriptions.js";
+import { complaintsRouter } from "./routes/complaints.js";
+import { addOnsRouter } from "./routes/addons.js";
+import { webhooksRouter } from "./routes/webhooks.js";
 
 export const app = express();
+
+// Stripe webhook needs raw body - must be before express.json()
+app.use("/api/webhooks", express.raw({ type: "application/json" }), webhooksRouter);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -25,3 +32,6 @@ app.use("/api/auth", authRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/flags", flagsRouter);
 app.use("/api/payments", paymentsRouter);
+app.use("/api/subscriptions", subscriptionsRouter);
+app.use("/api/complaints", complaintsRouter);
+app.use("/api/addons", addOnsRouter);

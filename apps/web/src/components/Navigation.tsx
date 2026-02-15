@@ -43,10 +43,26 @@ export function Navigation() {
                 <Link to="/dashboard" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                   Dashboard
                 </Link>
+                {user.role === 'CUSTOMER' && (
+                  <>
+                    <Link to="/subscription" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                      Subscription
+                    </Link>
+                    <Link to="/complaints" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                      Complaints
+                    </Link>
+                  </>
+                )}
                 {user.role === 'ADMIN' && (
                   <>
                     <Link to="/admin/orders" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                      Admin Orders
+                      Orders
+                    </Link>
+                    <Link to="/admin/analytics" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                      Analytics
+                    </Link>
+                    <Link to="/admin/complaints" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                      Complaints
                     </Link>
                     <Link to="/admin/features" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                       Features
