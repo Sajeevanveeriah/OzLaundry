@@ -12,34 +12,169 @@ enum Role {
   ADMIN
 }
 
+enum SubscriptionPlan {
+  STARTER
+  FAMILY
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  PAST_DUE
+}
+
+enum ComplaintCategory {
+  MISSING_ITEM
+  DAMAGED_GARMENT
+  QUALITY_CONCERN
+  LATE_DELIVERY
+  BILLING_ISSUE
+  OTHER
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
 model User {
-  id           String      @id @default(cuid())
-  email        String      @unique
+  id           String        @id @default(cuid())
+  email        String        @unique
   passwordHash String
   name         String
-  role         Role        @default(CUSTOMER)
+  phone        String?
+  address      String?
+  suburb       String?
+  role         Role          @default(CUSTOMER)
   orders       Order[]
-  createdAt    DateTime    @default(now())
+  subscription Subscription?
+  complaints   Complaint[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Subscription {
+  id                  String             @id @default(cuid())
+  userId              String             @unique
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                SubscriptionPlan
+  status              SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId    String?            @unique
+  stripeSubscriptionId String?           @unique
+  stripePriceId       String?
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  cancelAtPeriodEnd   Boolean            @default(false)
+  pausedAt            DateTime?
+
+  // Usage tracking
+  weightLimitLbs      Float
+  pickupsPerMonth     Int
+  pickupsUsed         Int                @default(0)
+  lastResetAt         DateTime           @default(now())
+
+  // Preferences
+  detergentPreference String?
+  washingInstructions String?
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([status])
+  @@index([stripeCustomerId])
 }
 
 model Order {
-  id         String      @id @default(cuid())
-  userId     String
-  user       User        @relation(fields: [userId], references: [id])
-  stage      String
-  notes      String?
-  pickupAt   DateTime
-  statusLogs StatusLog[]
-  createdAt  DateTime    @default(now())
+  id                String      @id @default(cuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id])
+  orderNumber       String      @unique
+
+  stage             String
+  notes             String?
+  pickupAt          DateTime
+  deliveryAt        DateTime?
+
+  // Order details
+  weightLbs         Float?
+  addOns            String[]    @default([])
+  specialInstructions String?
+
+  // Pricing
+  basePrice         Float       @default(0)
+  addOnsPrice       Float       @default(0)
+  totalPrice        Float       @default(0)
+
+  // QR tracking
+  qrCode            String?     @unique
+  qrSecretToken     String?
+
+  statusLogs        StatusLog[]
+  complaints        Complaint[]
+
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([stage])
+  @@index([orderNumber])
 }
 
 model StatusLog {
   id        String   @id @default(cuid())
   orderId   String
-  order     Order    @relation(fields: [orderId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   stage     String
   actor     String
+  location  String?
+  notes     String?
   createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model Complaint {
+  id              String            @id @default(cuid())
+  ticketNumber    String            @unique
+  userId          String
+  user            User              @relation(fields: [userId], references: [id])
+  orderId         String?
+  order           Order?            @relation(fields: [orderId], references: [id])
+
+  category        ComplaintCategory
+  status          ComplaintStatus   @default(OPEN)
+  subject         String
+  description     String
+  photoUrls       String[]          @default([])
+
+  // Resolution
+  assignedTo      String?
+  resolution      String?
+  refundAmount    Float?
+  refundIssued    Boolean           @default(false)
+  refundIssuedAt  DateTime?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  resolvedAt      DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([ticketNumber])
+}
+
+model AddOn {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Float
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model FeatureFlag {

@@ -11,12 +11,15 @@ export function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Premium Laundry Service
+              Premium Laundry Subscription
               <br />
-              <span className="text-primary-200">Delivered to Your Door</span>
+              <span className="text-primary-200">Geelong, Victoria</span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-primary-100 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl mb-4 text-primary-100 max-w-3xl mx-auto">
               Experience hassle-free laundry with real-time tracking, QR scanning, and professional care for your clothes.
+            </p>
+            <p className="text-lg mb-8 text-primary-200 max-w-2xl mx-auto">
+              Serving Greater Geelong, Bellarine Peninsula, and Surf Coast
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="secondary" onClick={() => navigate('/login')}>

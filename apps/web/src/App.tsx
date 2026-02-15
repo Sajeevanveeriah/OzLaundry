@@ -16,6 +16,9 @@ import { Dashboard } from "./pages/Dashboard";
 import { OrderDetail } from "./pages/OrderDetail";
 import { AdminOrders } from "./pages/admin/Orders";
 import { AdminFeatures } from "./pages/admin/Features";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy";
+import { Terms } from "./pages/Terms";
+import { RefundPolicy } from "./pages/RefundPolicy";
 
 export function App() {
   const auth = useAuth();
@@ -81,6 +84,9 @@ export function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/login" element={<Login onAuth={handleAuth} />} />
           <Route path="/register" element={<Register onAuth={handleAuth} />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/dashboard" element={<ProtectedRoute user={auth.user}><Dashboard user={auth.user} /></ProtectedRoute>} />
           <Route path="/orders/:id" element={<ProtectedRoute user={auth.user}><OrderDetail /></ProtectedRoute>} />
           <Route path="/admin/orders" element={<ProtectedRoute user={auth.user} adminOnly><AdminOrders /></ProtectedRoute>} />
